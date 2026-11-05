@@ -18,9 +18,7 @@ jobs:
         - name: macOS
           os: macos-latest
 
-        - name: iOS
-          os: macos-latest
-          target: iOS
+        # iOS removed: Geode's generated FMOD bindings currently fail to compile for iOS
 
         - name: Android32
           os: ubuntu-latest
