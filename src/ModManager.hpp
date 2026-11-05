@@ -10,6 +10,6 @@ public:
     bool m_hideBtns = false;
     bool m_ignoreDisabled = false;
     double m_opacity = 0;
-    // Not saved: Extra Practice starts off every time the game launches
-    bool m_extraPractice = false;
+    bool m_favouritesByDefault = false;
+    bool m_showFavouritesLabel = true;
 };

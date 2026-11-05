@@ -66,28 +66,23 @@ bool HookUILayer::init(GJBaseGameLayer* baseGame) {
             }
         });
 
-        addEventListener(KeybindSettingPressedEventV3(GEODE_MOD_ID, "toggleExtraPractice"), [this](const Keybind& keybind, bool down, bool repeat, double timestamp) {
+        addEventListener(KeybindSettingPressedEventV3(GEODE_MOD_ID, "toggleFavouritesMode"), [this](const Keybind& keybind, bool down, bool repeat, double timestamp) {
             if (down && !repeat) {
-                auto mm = ModManager::sharedState();
-                mm->m_extraPractice = !mm->m_extraPractice;
-                Notification::create(
-                    mm->m_extraPractice ? "Extra Practice: ON" : "Extra Practice: OFF",
-                    NotificationIcon::Info
-                )->show();
-                this->updateUI();
+                auto playLayer = static_cast<HookPlayLayer*>(PlayLayer::get());
+                playLayer->toggleFavouritesMode();
             }
         });
 
-        addEventListener(KeybindSettingPressedEventV3(GEODE_MOD_ID, "toggleFavourite"), [this](const Keybind& keybind, bool down, bool repeat, double timestamp) {
+        addEventListener(KeybindSettingPressedEventV3(GEODE_MOD_ID, "markFavourite"), [this](const Keybind& keybind, bool down, bool repeat, double timestamp) {
             if (down && !repeat) {
                 auto playLayer = static_cast<HookPlayLayer*>(PlayLayer::get());
                 playLayer->toggleFavourite();
             }
         });
 
-        // Shown above the switcher while Extra Practice is on
-        fields->m_modeLabel = CCLabelBMFont::create("Extra Practice", "goldFont.fnt");
-        fields->m_modeLabel->setID("extra-practice-label"_spr);
+        // Shown above the switcher while Favourites mode is on
+        fields->m_modeLabel = CCLabelBMFont::create("Favourites", "goldFont.fnt");
+        fields->m_modeLabel->setID("favourites-label"_spr);
         fields->m_modeLabel->setScale(0.45f);
         fields->m_modeLabel->setPosition(ccp(winSize.width / 2, director->getScreenBottom() + 36.f));
         fields->m_modeLabel->setVisible(false);
@@ -116,15 +111,29 @@ void HookUILayer::updateUI() {
         return;
     } else {
         fields->m_switcherMenu->setVisible(true);
-        fields->m_modeLabel->setVisible(mm->m_extraPractice);
+        fields->m_modeLabel->setVisible(playLayer->m_fields->m_favouritesMode && mm->m_showFavouritesLabel);
     }
 
     int idx = playLayer->m_fields->m_startPosIdx;
-    fields->m_switcherLabel->setString(fmt::format("{}/{}", idx, playLayer->m_fields->m_startPosObjects.size()).c_str());
+    std::string text;
+    if (playLayer->isFilteringFavourites()) {
+        // Count only favourites, e.g. "3/6". An unmarked start position you are
+        // still sitting on (after unmarking it or turning the mode on) shows "-/6".
+        int total = playLayer->favouriteCount();
+        if (idx == 0)
+            text = fmt::format("0/{}", total);
+        else if (playLayer->isFavourite(idx))
+            text = fmt::format("{}/{}", playLayer->favouriteRank(idx), total);
+        else
+            text = fmt::format("-/{}", total);
+    } else {
+        text = fmt::format("{}/{}", idx, playLayer->m_fields->m_startPosObjects.size());
+    }
+    fields->m_switcherLabel->setString(text.c_str());
     fields->m_switcherLabel->limitLabelWidth(40, 0.6f, 0);
 
-    // Marked ("accessible at all times") start positions show in green
-    fields->m_switcherLabel->setColor(playLayer->isFavourite(idx) ? ccc3(0, 255, 0) : ccc3(255, 255, 255));
+    // Favourited start positions show in yellow
+    fields->m_switcherLabel->setColor(playLayer->isFavourite(idx) ? ccc3(255, 255, 0) : ccc3(255, 255, 255));
 
     fields->m_switcherMenu->stopActionByTag(676767677);
     fields->m_modeLabel->stopActionByTag(676767677);

@@ -64,12 +64,19 @@ void HookPlayLayer::createObjectsFromSetupFinished() {
         fields->m_startPosIdx = currentIdx + 1;
     }
 
+    // Work out each start position's save key once, from its position at load,
+    // so triggers moving it mid-level can't change which key it matches.
+    fields->m_startPosKeys.clear();
+    for (auto& obj : fields->m_startPosObjects)
+        fields->m_startPosKeys.push_back(startPosKey(obj));
+
     loadFavourites();
+    fields->m_favouritesMode = ModManager::sharedState()->m_favouritesByDefault;
 
     static_cast<HookUILayer*>(m_uiLayer)->updateUI();
 }
 
-// ---------- Extra Practice ----------
+// ---------- Favourites ----------
 
 // Moves one step in `direction` (+1 / -1), skipping start positions that are
 // not allowed in the current mode. Index 0 (level start) is always allowed.
@@ -90,16 +97,28 @@ void HookPlayLayer::switchStartPos(int direction) {
     updateStartPos(idx);
 }
 
+void HookPlayLayer::toggleFavouritesMode() {
+    auto fields = m_fields.self();
+    fields->m_favouritesMode = !fields->m_favouritesMode;
+
+    std::string text = fields->m_favouritesMode ? "Favourites: ON" : "Favourites: OFF";
+    if (fields->m_favouritesMode && favouriteCount() == 0)
+        text += " (no favourites marked yet)";
+    Notification::create(text, NotificationIcon::Info)->show();
+
+    static_cast<HookUILayer*>(m_uiLayer)->updateUI();
+}
+
 void HookPlayLayer::toggleFavourite() {
     auto fields = m_fields.self();
     int idx = fields->m_startPosIdx;
 
-    if (idx <= 0 || idx > static_cast<int>(fields->m_startPosObjects.size())) {
-        Notification::create("Select a start position to mark it", NotificationIcon::Warning)->show();
+    if (idx <= 0 || idx > static_cast<int>(fields->m_startPosKeys.size())) {
+        Notification::create("Select a start position to favourite it", NotificationIcon::Warning)->show();
         return;
     }
 
-    auto key = startPosKey(fields->m_startPosObjects[idx - 1]);
+    auto const& key = fields->m_startPosKeys[idx - 1];
     bool nowFavourite;
     if (fields->m_favourites.contains(key)) {
         fields->m_favourites.erase(key);
@@ -111,7 +130,7 @@ void HookPlayLayer::toggleFavourite() {
     saveFavourites();
 
     Notification::create(
-        fmt::format("Start position {} {}", idx, nowFavourite ? "marked" : "unmarked"),
+        fmt::format("Start position {} {} favourites", idx, nowFavourite ? "added to" : "removed from"),
         nowFavourite ? NotificationIcon::Success : NotificationIcon::Info
     )->show();
 
@@ -120,28 +139,43 @@ void HookPlayLayer::toggleFavourite() {
 
 bool HookPlayLayer::isFavourite(int idx) {
     auto fields = m_fields.self();
-    if (idx <= 0 || idx > static_cast<int>(fields->m_startPosObjects.size()))
+    if (idx <= 0 || idx > static_cast<int>(fields->m_startPosKeys.size()))
         return false;
-    return fields->m_favourites.contains(startPosKey(fields->m_startPosObjects[idx - 1]));
+    return fields->m_favourites.contains(fields->m_startPosKeys[idx - 1]);
 }
 
-bool HookPlayLayer::hasAnyFavourite() {
+int HookPlayLayer::favouriteCount() {
     auto fields = m_fields.self();
-    for (int i = 1; i <= static_cast<int>(fields->m_startPosObjects.size()); i++) {
+    int count = 0;
+    for (int i = 1; i <= static_cast<int>(fields->m_startPosKeys.size()); i++) {
         if (isFavourite(i))
-            return true;
+            count++;
     }
-    return false;
+    return count;
+}
+
+// 1-based position of start position `idx` among the favourites, or 0 if it isn't one
+int HookPlayLayer::favouriteRank(int idx) {
+    if (!isFavourite(idx))
+        return 0;
+    int rank = 0;
+    for (int i = 1; i <= idx; i++) {
+        if (isFavourite(i))
+            rank++;
+    }
+    return rank;
+}
+
+// Favourites mode only filters once at least one favourite exists; otherwise
+// it would leave nothing but the level start to switch to.
+bool HookPlayLayer::isFilteringFavourites() {
+    return m_fields->m_favouritesMode && favouriteCount() > 0;
 }
 
 bool HookPlayLayer::isAllowed(int idx) {
     if (idx == 0)
         return true;
-    if (ModManager::sharedState()->m_extraPractice)
-        return true;
-    // With nothing marked, Extra Practice off would leave only the level start,
-    // so fall back to normal behaviour until at least one is marked.
-    if (!hasAnyFavourite())
+    if (!isFilteringFavourites())
         return true;
     return isFavourite(idx);
 }
@@ -168,5 +202,12 @@ void HookPlayLayer::loadFavourites() {
 void HookPlayLayer::saveFavourites() {
     auto fields = m_fields.self();
     std::vector<std::string> out(fields->m_favourites.begin(), fields->m_favourites.end());
+    std::sort(out.begin(), out.end());
     Mod::get()->setSavedValue(levelSaveKey(), out);
+
+    // Geode normally only writes saved values to disk when GD saves on a clean
+    // exit, so a crash or force-close loses them. Write straight away instead.
+    if (auto res = Mod::get()->saveData(); !res) {
+        log::error("Failed to save favourites: {}", res.unwrapErr());
+    }
 }

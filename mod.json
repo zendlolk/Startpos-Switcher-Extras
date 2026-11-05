@@ -26,17 +26,17 @@
 			"default": "E",
 			"category": "gameplay"
 		},
-		"toggleExtraPractice": {
+		"toggleFavouritesMode": {
 			"type": "keybind",
-			"name": "Toggle Extra Practice",
-			"description": "Turns Extra Practice on or off. When off, only start positions marked green can be switched to (if any are marked)",
+			"name": "Toggle Favourites Mode",
+			"description": "Turns Favourites mode on or off. When on, you can only switch between favourited start positions and the counter only counts favourites",
 			"default": "P",
 			"category": "gameplay"
 		},
-		"toggleFavourite": {
+		"markFavourite": {
 			"type": "keybind",
-			"name": "Mark Startpos",
-			"description": "Marks or unmarks the current start position (green) so it stays accessible when Extra Practice is off",
+			"name": "Favourite Startpos",
+			"description": "Adds or removes the current start position from this level's favourites (shown in yellow)",
 			"default": "O",
 			"category": "gameplay"
 		},
@@ -67,6 +67,18 @@
 			"name": "Ignore Disabled",
 			"description": "Ignores start positions that have been disabled",
 			"default": false,
+			"type": "bool"
+		},
+		"favouritesByDefault": {
+			"name": "Favourites mode on by default",
+			"description": "Turns Favourites mode on automatically when you enter a level",
+			"default": false,
+			"type": "bool"
+		},
+		"showFavouritesLabel": {
+			"name": "Show Favourites text",
+			"description": "Shows 'Favourites' above the switcher while Favourites mode is on",
+			"default": true,
 			"type": "bool"
 		}
 	},

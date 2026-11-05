@@ -9,8 +9,13 @@ struct HookPlayLayer : geode::Modify<HookPlayLayer, PlayLayer> {
 		std::vector<geode::Ref<GameObject>> m_startPosObjects = {};
 		int m_startPosIdx = 0;
         bool m_canSwitch = true;
-		// Keys ("x,y") of start positions marked green for this level
+
+		// Save key ("x,y") for each entry in m_startPosObjects, same order
+		std::vector<std::string> m_startPosKeys = {};
+		// Keys of the start positions favourited in this level
 		std::unordered_set<std::string> m_favourites = {};
+		// When on, only favourites can be switched to and the counter shows favourites only
+		bool m_favouritesMode = false;
 	};
 
 	void addObject(GameObject* obj);
@@ -18,12 +23,15 @@ struct HookPlayLayer : geode::Modify<HookPlayLayer, PlayLayer> {
 
 	void updateStartPos(int index);
 
-	// Extra Practice
+	// Favourites
 	void switchStartPos(int direction);
+	void toggleFavouritesMode();
 	void toggleFavourite();
 	bool isFavourite(int idx);
+	int favouriteCount();
+	int favouriteRank(int idx);
+	bool isFilteringFavourites();
 	bool isAllowed(int idx);
-	bool hasAnyFavourite();
 
 	std::string levelSaveKey();
 	std::string startPosKey(GameObject* obj);
