@@ -15,8 +15,9 @@ jobs:
         - name: Windows
           os: windows-latest
 
-        - name: macOS
-          os: macos-latest
+        # macOS removed: GitHub's macOS runners were not picking up jobs; restore if needed
+        # - name: macOS
+        #   os: macos-latest
 
         # iOS removed: Geode's generated FMOD bindings currently fail to compile for iOS
 
