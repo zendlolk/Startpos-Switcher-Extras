@@ -12,21 +12,35 @@
 	"developer": "capeling",
 	"description": "Just a startpos switcher",
 	"settings": {
-        "leftSwitch": {
-            "type": "keybind",
-            "name": "Previous Startpos",
-            "description": "Switches to the previous startpos, wraps around",
-            "default": "Q",
-            "category": "gameplay"
-        },
-        "rightSwitch": {
-            "type": "keybind",
-            "name": "Next Startpos",
-            "description": "Switches to the next startpos, wraps around",
-            "default": "E",
-            "category": "gameplay"
-        },
-		"opacity":{
+		"leftSwitch": {
+			"type": "keybind",
+			"name": "Previous Startpos",
+			"description": "Switches to the previous startpos, wraps around",
+			"default": "Q",
+			"category": "gameplay"
+		},
+		"rightSwitch": {
+			"type": "keybind",
+			"name": "Next Startpos",
+			"description": "Switches to the next startpos, wraps around",
+			"default": "E",
+			"category": "gameplay"
+		},
+		"toggleExtraPractice": {
+			"type": "keybind",
+			"name": "Toggle Extra Practice",
+			"description": "Turns Extra Practice on or off. When off, only start positions marked green can be switched to (if any are marked)",
+			"default": "P",
+			"category": "gameplay"
+		},
+		"toggleFavourite": {
+			"type": "keybind",
+			"name": "Mark Startpos",
+			"description": "Marks or unmarks the current start position (green) so it stays accessible when Extra Practice is off",
+			"default": "O",
+			"category": "gameplay"
+		},
+		"opacity": {
 			"name": "Opacity",
 			"default": 50,
 			"max": 100,
@@ -37,13 +51,13 @@
 			},
 			"type": "float"
 		},
-		"hide":{
+		"hide": {
 			"name": "Don't fade on start",
 			"description": "Does not make the menu fade from max opacity when you first open a level",
 			"default": false,
 			"type": "bool"
 		},
-		"hideBtns":{
+		"hideBtns": {
 			"name": "Hide buttons",
 			"description": "Hides the arrow buttons",
 			"default": false,

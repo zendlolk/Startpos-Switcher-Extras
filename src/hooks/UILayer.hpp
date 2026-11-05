@@ -10,6 +10,7 @@ struct HookUILayer : geode::Modify<HookUILayer, UILayer> {
 		geode::Ref<cocos2d::CCLabelBMFont> m_switcherLabel = nullptr;
 
 		geode::Ref<cocos2d::CCMenu> m_switcherMenu = nullptr;
+		geode::Ref<cocos2d::CCLabelBMFont> m_modeLabel = nullptr;
 
 		bool m_firstUpdate = true;
 		bool m_dontUpdate = false;
